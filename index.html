@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Harmonic Balance Simulator</title>
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<script>
+window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},svg:{fontCache:'global'}};
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+<style>
+:root{--bg:#f4f7fb;--card:#fff;--text:#0f172a;--muted:#475569;--border:#dbe3ef;--accent:#2563eb;--soft:#f8fafc;--shadow:0 12px 34px rgba(15,23,42,.08)}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:var(--text)}
+header{padding:28px 34px;background:linear-gradient(135deg,#fff,#eff6ff);border-bottom:1px solid var(--border)}
+h1{margin:0 0 10px;font-size:clamp(28px,4vw,44px);letter-spacing:-.04em}.subtitle{max-width:980px;color:var(--muted);font-size:17px;line-height:1.5}
+.app{max-width:1500px;margin:0 auto;padding:22px;display:grid;grid-template-columns:410px 1fr;gap:22px;align-items:start}
+.card,.plot-card{background:var(--card);border:1px solid var(--border);border-radius:20px;box-shadow:var(--shadow);padding:20px}
+.sidebar{position:sticky;top:14px;display:flex;flex-direction:column;gap:16px}h2{margin:0 0 14px;font-size:20px}
+.small{font-size:13px;color:var(--muted);line-height:1.45}.control{margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid #eef2f7}.control:last-child{border-bottom:0;margin-bottom:0;padding-bottom:0}
+label{display:flex;justify-content:space-between;gap:10px;font-weight:900;font-size:14px;margin-bottom:7px}.value{color:var(--accent);font-variant-numeric:tabular-nums;white-space:nowrap}
+input[type=range]{width:100%;accent-color:var(--accent)}select{width:100%;padding:10px;border:1px solid var(--border);border-radius:12px;background:#fff;font-weight:700}
+button{border:1px solid var(--border);background:#fff;border-radius:999px;padding:9px 13px;cursor:pointer;font-weight:900;color:#334155;margin:3px}
+button:hover{background:#dbeafe;color:#1d4ed8;border-color:#93c5fd}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}.main{display:flex;flex-direction:column;gap:22px;min-width:0}
+.metric-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.metric{background:var(--soft);border:1px solid var(--border);border-radius:16px;padding:13px}.metric .name{font-size:12px;color:var(--muted);font-weight:800}.metric .val{font-size:18px;font-weight:950;margin-top:4px}
+.plot{height:430px;width:100%}.plot-large{height:520px;width:100%}.plot-header{display:flex;justify-content:space-between;gap:12px;margin-bottom:10px}.plot-title{font-weight:950;font-size:17px}.plot-help{font-size:12px;color:var(--muted);max-width:590px;text-align:right;line-height:1.35}
+.formula{background:#0f172a;color:#fff;border-radius:16px;padding:16px;overflow-x:auto}.note{background:#f8fafc;border:1px solid var(--border);border-radius:16px;padding:14px;color:#334155;line-height:1.6}.status{border-radius:14px;padding:12px;font-weight:900;text-align:center;background:#eff6ff;color:#1e3a8a;border:1px solid #bfdbfe}.warn{background:#fff7ed;color:#7c2d12;border-color:#fed7aa}.good{background:#ecfdf5;color:#166534;border-color:#bbf7d0}
+@media(max-width:1100px){.app,.grid2{grid-template-columns:1fr}.sidebar{position:static}.metric-grid{grid-template-columns:repeat(2,1fr)}.plot-help{text-align:left}.plot-header{flex-direction:column}}
+@media(max-width:650px){header{padding:20px}.app{padding:12px}.metric-grid{grid-template-columns:1fr}.plot,.plot-large{height:360px}}
+</style>
+</head>
+<body>
+<header>
+<h1>Harmonic Balance Simulator for Nonlinear Vibration</h1>
+<div class="subtitle">Interactive implementation of the single-harmonic harmonic balance method for a forced Duffing-type oscillator. Adjust parameters and compare the harmonic-balance prediction with numerical time-domain simulation.</div>
+</header>
+<div class="app">
+<aside class="sidebar">
+<section class="card">
+<h2>Model parameters</h2>
+<div class="control"><label>Mass "m" <span class="value" id="mVal"></span></label><input id="m" type="range" min="0.1" max="10" step="0.1" value="1"></div>
+<div class="control"><label>Damping "c" <span class="value" id="cVal"></span></label><input id="c" type="range" min="0" max="5" step="0.02" value="0.15"></div>
+<div class="control"><label>Linear stiffness "k" <span class="value" id="kVal"></span></label><input id="k" type="range" min="1" max="120" step="1" value="20"></div>
+<div class="control"><label>Cubic stiffness "α" <span class="value" id="alphaVal"></span></label><input id="alpha" type="range" min="-800" max="800" step="10" value="200"></div>
+<div class="control"><label>Force amplitude "F₀" <span class="value" id="F0Val"></span></label><input id="F0" type="range" min="0.1" max="30" step="0.1" value="3"></div>
+<div class="control"><label>Selected frequency "ω" <span class="value" id="omegaVal"></span></label><input id="omega" type="range" min="0.1" max="25" step="0.05" value="4.8"></div>
+<div class="control"><label>Frequency sweep range</label><select id="rangeMode"><option value="auto" selected>Auto around natural frequency</option><option value="wide">Wide</option><option value="custom">0.1 to 25 rad/s</option></select></div>
+<div class="control"><label>Numerical comparison</label><select id="compareMode"><option value="on" selected>Show numerical simulation</option><option value="off">HBM only</option></select></div>
+<div class="status" id="statusBox">Ready</div>
+</section>
+<section class="card">
+<h2>Presets</h2>
+<button onclick="preset('linear')">Linear reference</button>
+<button onclick="preset('hardening')">Hardening Duffing</button>
+<button onclick="preset('softening')">Softening Duffing</button>
+<button onclick="preset('strong')">Strong nonlinear response</button>
+</section>
+<section class="card"><h2>Harmonic balance equation</h2><div class="formula">
+\[
+m\ddot{x}+c\dot{x}+kx+\alpha x^3=F_0\sin(\omega t)
+\]
+\[
+x(t)\approx A\sin(\omega t-\phi)
+\]
+\[
+F_0^2=A^2\left[\left(k+\frac{3}{4}\alpha A^2-m\omega^2\right)^2+(c\omega)^2\right]
+\]
+</div><p class="small">This simulator uses the first-harmonic approximation. The cubic term is approximated by its fundamental component: \(x^3 \approx \frac{3}{4}A^3\sin(\omega t-\phi)\). Higher harmonics are neglected.</p></section>
+</aside>
+<main class="main">
+<section class="card"><h2>Current harmonic-balance solution</h2><div class="metric-grid" id="metrics"></div><div class="note" id="interpretation"></div></section>
+<section class="plot-card"><div class="plot-header"><div class="plot-title">Amplitude-frequency response</div><div class="plot-help">Harmonic-balance amplitude branches. Multiple branches may appear for nonlinear stiffness. Branches shown are algebraic roots, not stability-classified.</div></div><div id="ampPlot" class="plot-large"></div></section>
+<div class="grid2">
+<section class="plot-card"><div class="plot-header"><div class="plot-title">Phase-frequency response</div><div class="plot-help">Phase lag from the first-harmonic balance solution.</div></div><div id="phasePlot" class="plot"></div></section>
+<section class="plot-card"><div class="plot-header"><div class="plot-title">Residual check</div><div class="plot-help">Harmonic-balance algebraic residual versus amplitude at selected frequency.</div></div><div id="residualPlot" class="plot"></div></section>
+</div>
+<section class="plot-card"><div class="plot-header"><div class="plot-title">Time response comparison</div><div class="plot-help">Compares numerical time integration with the selected HBM harmonic approximation.</div></div><div id="timePlot" class="plot-large"></div></section>
+<div class="grid2">
+<section class="plot-card"><div class="plot-header"><div class="plot-title">Phase portrait</div><div class="plot-help">Numerical steady-state phase trajectory and HBM ellipse approximation.</div></div><div id="portraitPlot" class="plot"></div></section>
+<section class="plot-card"><div class="plot-header"><div class="plot-title">Error estimate</div><div class="plot-help">Difference between numerical steady-state response and first-harmonic HBM response.</div></div><div id="errorPlot" class="plot"></div></section>
+</div>
+<section class="card"><h2>Notes and limitations</h2><div class="note">The harmonic balance method here uses a single-harmonic approximation. It works well when the response is mostly sinusoidal. The amplitude-frequency branches are algebraic HBM roots and are not automatically classified as stable or unstable. For strong nonlinearity, jumps, subharmonics, superharmonics, or chaotic response, the numerical solution may deviate from the first-harmonic prediction. This app is intended as an educational simulator, not certified engineering design software.</div></section>
+</main>
+</div>
+<script>
+const plotConfig={responsive:true,displaylogo:false};
+function val(id){return parseFloat(document.getElementById(id).value)}function setv(id,v){document.getElementById(id).value=v}
+function fmt(x,n=3){if(!isFinite(x))return"N/A";if(Math.abs(x)>=1000||(Math.abs(x)<1e-3&&x!==0))return x.toExponential(n);return x.toFixed(n)}
+function params(){return{m:val("m"),c:val("c"),k:val("k"),alpha:val("alpha"),F0:val("F0"),omega:val("omega")}}
+function preset(name){if(name==="linear"){setv("m",1);setv("c",0.25);setv("k",20);setv("alpha",0);setv("F0",2);setv("omega",4.4)}if(name==="hardening"){setv("m",1);setv("c",0.15);setv("k",20);setv("alpha",250);setv("F0",3);setv("omega",5)}if(name==="softening"){setv("m",1);setv("c",0.2);setv("k",25);setv("alpha",-80);setv("F0",2);setv("omega",4.3)}if(name==="strong"){setv("m",1);setv("c",0.12);setv("k",20);setv("alpha",500);setv("F0",8);setv("omega",5.7)}update()}
+function hbmResidual(A,omega,p){const keff=p.k+0.75*p.alpha*A*A-p.m*omega*omega;return A*A*(keff*keff+(p.c*omega)*(p.c*omega))-p.F0*p.F0}
+function hbmPhase(A,omega,p){const keff=p.k+0.75*p.alpha*A*A-p.m*omega*omega;return Math.atan2(p.c*omega,keff)}
+function hbmRootsAtOmega(omega,p){const lin=p.F0/Math.max(1e-9,Math.sqrt(Math.pow(p.k-p.m*omega*omega,2)+Math.pow(p.c*omega,2)));const scale=Math.max(2,lin*4,Math.sqrt(Math.abs(p.F0/(p.alpha||1)))*3);const Amax=Math.min(100,Math.max(5,scale));const N=1400;let roots=[];let prevA=0,prevR=hbmResidual(prevA,omega,p);for(let i=1;i<=N;i++){const A=Amax*i/N;const R=hbmResidual(A,omega,p);if(Math.abs(R)<1e-5){roots.push(A)}else if(prevR*R<0){let lo=prevA,hi=A,flo=prevR;for(let it=0;it<60;it++){const mid=(lo+hi)/2;const fm=hbmResidual(mid,omega,p);if(flo*fm<=0){hi=mid}else{lo=mid;flo=fm}}roots.push((lo+hi)/2)}prevA=A;prevR=R}roots=roots.filter(a=>a>1e-7&&isFinite(a)).sort((a,b)=>a-b);let u=[];roots.forEach(r=>{if(!u.length||Math.abs(r-u[u.length-1])>1e-3)u.push(r)});return u}
+function frequencyRange(p){const wn=Math.sqrt(p.k/p.m);const mode=document.getElementById("rangeMode").value;if(mode==="wide")return[Math.max(.1,.2*wn),Math.min(25,2.5*wn)];if(mode==="custom")return[.1,25];return[Math.max(.1,.45*wn),Math.min(25,1.75*wn)]}
+function computeHBMCurve(p){const [wmin,wmax]=frequencyRange(p);let w=[],a=[],ph=[],branch=[];for(let i=0;i<260;i++){const om=wmin+(wmax-wmin)*i/259;const roots=hbmRootsAtOmega(om,p);roots.forEach((A,j)=>{w.push(om);a.push(A);ph.push(hbmPhase(A,om,p)*180/Math.PI);branch.push(j+1)})}return{w,a,ph,branch,wmin,wmax}}
+function selectedSolution(p){const roots=hbmRootsAtOmega(p.omega,p);if(!roots.length)return null;let best=roots[0];roots.forEach(r=>{if(r>best)best=r});return{A:best,phi:hbmPhase(best,p.omega,p),roots}}
+function deriv(t,y,p){const x=y[0],v=y[1];return[v,(p.F0*Math.sin(p.omega*t)-p.c*v-p.k*x-p.alpha*Math.pow(x,3))/p.m]}
+function rk4(t,y,dt,p){const k1=deriv(t,y,p);const y2=[y[0]+.5*dt*k1[0],y[1]+.5*dt*k1[1]];const k2=deriv(t+.5*dt,y2,p);const y3=[y[0]+.5*dt*k2[0],y[1]+.5*dt*k2[1]];const k3=deriv(t+.5*dt,y3,p);const y4=[y[0]+dt*k3[0],y[1]+dt*k3[1]];const k4=deriv(t+dt,y4,p);return[y[0]+dt/6*(k1[0]+2*k2[0]+2*k3[0]+k4[0]),y[1]+dt/6*(k1[1]+2*k2[1]+2*k3[1]+k4[1])]}
+function simulate(p,sol){
+  const T=2*Math.PI/p.omega, periods=90, keep=8, spp=80, dt=T/spp;
+  let y=[0,0], t=0;
+  let tt=[], tabs=[], x=[], v=[], h=[], hv=[], err=[];
+  const tKeepStart=(periods-keep)*T;
+
+  for(let i=0;i<periods*spp;i++){
+    if(i>tKeepStart/dt){
+      const hbm=sol?sol.A*Math.sin(p.omega*t-sol.phi):0;
+      const hbmV=sol?sol.A*p.omega*Math.cos(p.omega*t-sol.phi):0;
+      tabs.push(t);
+      tt.push(t-tKeepStart);
+      x.push(y[0]);
+      v.push(y[1]);
+      h.push(hbm);
+      hv.push(hbmV);
+      err.push(y[0]-hbm);
+    }
+
+    y=rk4(t,y,dt,p);
+    t+=dt;
+
+    if(Math.abs(y[0])>1e6||!isFinite(y[0])||!isFinite(y[1]))break;
+  }
+
+  return{t:tt,tabs,x,v,h,hv,err};
+}
+function layout(title,xlab,ylab){return{title:{text:title,x:.02,xanchor:"left"},margin:{l:70,r:35,t:60,b:70},paper_bgcolor:"#fff",plot_bgcolor:"#fff",font:{family:"Arial, sans-serif",size:12,color:"#0f172a"},xaxis:{title:xlab,showgrid:true,gridcolor:"#e5e7eb",zeroline:true,mirror:true,ticks:"outside",linecolor:"#cbd5e1"},yaxis:{title:ylab,showgrid:true,gridcolor:"#e5e7eb",zeroline:true,mirror:true,ticks:"outside",linecolor:"#cbd5e1"},legend:{orientation:"h",y:-.25}}}
+function update(){const p=params();["m","c","k","alpha","F0","omega"].forEach(id=>{document.getElementById(id+"Val").textContent=fmt(val(id),id==="alpha"?0:2)});const wn=Math.sqrt(p.k/p.m),zeta=p.c/(2*Math.sqrt(p.k*p.m));const curve=computeHBMCurve(p);const sol=selectedSolution(p);const status=document.getElementById("statusBox");status.className="status";if(p.alpha>0){
+  status.textContent="Hardening nonlinear stiffness";
+  status.classList.add("good");
+}else if(p.alpha<0){
+  status.textContent="Softening nonlinear stiffness. Large amplitudes may become unbounded.";
+  status.classList.add("warn");
+}else{
+  status.textContent="Linear stiffness";
+}document.getElementById("metrics").innerHTML=`<div class="metric"><div class="name">Natural frequency</div><div class="val">${fmt(wn)} rad/s</div></div><div class="metric"><div class="name">Damping ratio</div><div class="val">${fmt(zeta,4)}</div></div><div class="metric"><div class="name">HBM amplitude</div><div class="val">${sol?fmt(sol.A):"N/A"} m</div></div><div class="metric"><div class="name">HBM phase lag</div><div class="val">${sol?fmt(sol.phi*180/Math.PI,1):"N/A"}°</div></div><div class="metric"><div class="name">Roots at selected ω</div><div class="val">${sol?sol.roots.length:0}</div></div><div class="metric"><div class="name">Frequency ratio</div><div class="val">${fmt(p.omega/wn)}</div></div><div class="metric"><div class="name">Nonlinear type</div><div class="val">${p.alpha>0?"Hardening":p.alpha<0?"Softening":"Linear"}</div></div><div class="metric"><div class="name">Method</div><div class="val">1st harmonic</div></div><div class="metric"><div class="name">HBM residual</div><div class="val">${sol?fmt(hbmResidual(sol.A,p.omega,p),2):"N/A"}</div></div>`;document.getElementById("interpretation").textContent=sol?`At the selected frequency, the first-harmonic harmonic balance approximation predicts amplitude A = ${fmt(sol.A)} m and phase lag ${fmt(sol.phi*180/Math.PI,1)} degrees. ${sol.roots.length>1?"Multiple amplitude roots exist at this frequency, which is typical of nonlinear jump-type behavior. These roots are algebraic HBM solutions; stability is not classified in this version.":"A single amplitude root is found at this frequency."}`:"No positive harmonic-balance amplitude root was found at the selected frequency.";const colors=["#0072BD","#D95319","#EDB120"];let traces=[];[1,2,3].forEach((b,i)=>{let x=[],y=[];for(let j=0;j<curve.w.length;j++)if(curve.branch[j]===b){x.push(curve.w[j]);y.push(curve.a[j])}if(x.length)traces.push({x,y,mode:"markers",name:`HBM branch ${b}`,marker:{size:5,color:colors[i]}})});traces.push({x:[p.omega,p.omega],y:[0,Math.max(...curve.a,1)],mode:"lines",name:"selected ω",line:{dash:"dash",color:"#000"}});Plotly.react("ampPlot",traces,layout("Harmonic Balance Amplitude-Frequency Response","Excitation frequency ω [rad/s]","Amplitude A [m]"),plotConfig);let phaseTraces=[];[1,2,3].forEach((b,i)=>{let x=[],y=[];for(let j=0;j<curve.w.length;j++)if(curve.branch[j]===b){x.push(curve.w[j]);y.push(curve.ph[j])}if(x.length)phaseTraces.push({x,y,mode:"markers",name:`Branch ${b}`,marker:{size:5,color:colors[i]}})});Plotly.react("phasePlot",phaseTraces,layout("HBM Phase-Frequency Response","Excitation frequency ω [rad/s]","Phase lag φ [deg]"),plotConfig);let Amax=Math.max(...curve.a,sol?sol.A:1,1)*1.4,AA=[],RR=[];for(let i=0;i<500;i++){const A=Amax*i/499;AA.push(A);RR.push(hbmResidual(A,p.omega,p))}Plotly.react("residualPlot",[{x:AA,y:RR,mode:"lines",name:"Residual R(A)",line:{color:"#0072BD",width:2}},{x:[0,Amax],y:[0,0],mode:"lines",name:"zero",line:{color:"#000",dash:"dash"}}],layout("HBM Algebraic Residual at Selected Frequency","Amplitude A [m]","Residual R(A)"),plotConfig);if(document.getElementById("compareMode").value==="on"&&sol){const sim=simulate(p,sol);Plotly.react("timePlot",[{x:sim.t,y:sim.x,mode:"lines",name:"Numerical",line:{color:"#0072BD",width:2}},{x:sim.t,y:sim.h,mode:"lines",name:"HBM approximation",line:{color:"#D95319",dash:"dash",width:2}}],layout("Steady-State Time Response: Numerical vs HBM","Time in final cycles [s]","Displacement x [m]"),plotConfig);Plotly.react("portraitPlot",[{x:sim.x,y:sim.v,mode:"lines",name:"Numerical",line:{color:"#0072BD",width:2}},{x:sim.h,y:sim.hv,mode:"lines",name:"HBM ellipse",line:{color:"#D95319",dash:"dash",width:2}}],layout("Phase Portrait: Numerical vs HBM","Displacement x [m]","Velocity v [m/s]"),plotConfig);Plotly.react("errorPlot",[{x:sim.t,y:sim.err,mode:"lines",name:"x_num - x_HBM",line:{color:"#7E2F8E",width:2}}],layout("Approximation Error","Time in final cycles [s]","Error [m]"),plotConfig)}else{Plotly.react("timePlot",[],layout("Steady-State Time Response","Time [s]","Displacement x [m]"),plotConfig);Plotly.react("portraitPlot",[],layout("Phase Portrait","Displacement x [m]","Velocity v [m/s]"),plotConfig);Plotly.react("errorPlot",[],layout("Approximation Error","Time [s]","Error [m]"),plotConfig)}if(window.MathJax)MathJax.typesetPromise()}
+document.querySelectorAll("input,select").forEach(el=>{el.addEventListener("input",update);el.addEventListener("change",update)});update();
+</script>
+</body>
+</html>
