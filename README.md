@@ -1,4 +1,4 @@
-# Harmonic Balance Simulator — Nonlinear Vibration Analysis
+# Harmonic Balance Simulator - Nonlinear Vibration Analysis
 
 **Harmonic Balance Simulator** is a browser-based interactive tool for studying the harmonic balance method applied to a forced nonlinear vibration system.
 
