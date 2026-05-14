@@ -1,252 +1,281 @@
-# Harmonic Balance Simulator - Nonlinear Vibration Analysis
+# Nonlinear Vibration Digital Lab
 
-**Harmonic Balance Simulator** is a browser-based interactive tool for studying the harmonic balance method applied to a forced nonlinear vibration system.
+Interactive engineering dashboard for exploring nonlinear vibration dynamics, harmonic balance methods, resonance behavior, spectral harmonics, and phase-space motion using a forced Duffing oscillator model.
 
-The simulator focuses on a single-degree-of-freedom Duffing-type oscillator with cubic stiffness nonlinearity. It allows users to change model parameters, compute the first-harmonic harmonic balance solution, and compare the result with direct numerical time-domain simulation.
+![Platform Preview](preview.png)
 
 ---
 
-## Governing Equation
+# Overview
 
-The model is based on the forced nonlinear vibration equation:
+This project is an interactive browser-based nonlinear vibration simulator designed for:
 
-m x'' + c x' + kx + alpha x^3 = F0 sin(omega t)
+- engineering education
+- nonlinear dynamics visualization
+- vibration analysis exploration
+- harmonic balance demonstration
+- resonance and instability studies
+- FFT and spectral analysis
+- research prototyping
+
+The application combines:
+- first-harmonic Harmonic Balance Method (HBM)
+- numerical Runge–Kutta integration
+- live FFT analysis
+- resonance branch visualization
+- animated mechanical response
+- engineering interpretation dashboard
+
+The simulator is fully client-side and runs directly in a modern web browser.
+
+---
+
+# Features
+
+## Nonlinear Duffing Oscillator Model
+
+The system solves:
+
+```text
+m x¨ + c x˙ + kx + αx³ = F₀ sin(ωt)
+```
 
 where:
 
-| Symbol | Description |
+| Parameter | Description |
 |---|---|
-| `m` | Mass |
-| `c` | Damping coefficient |
-| `k` | Linear stiffness |
-| `alpha` | Cubic nonlinear stiffness coefficient |
-| `F0` | Harmonic excitation force amplitude |
-| `omega` | Excitation frequency |
-| `x` | Displacement |
-| `x'` | Velocity |
-| `x''` | Acceleration |
-
-When `alpha = 0`, the system is linear.
-
-When `alpha > 0`, the system has hardening stiffness.
-
-When `alpha < 0`, the system has softening stiffness.
+| m | mass |
+| c | damping coefficient |
+| k | linear stiffness |
+| α | cubic nonlinear stiffness |
+| F₀ | forcing amplitude |
+| ω | forcing frequency |
 
 ---
 
-## Harmonic Balance Approximation
+## Implemented Functionality
 
-The simulator uses the first-harmonic approximation:
+### Harmonic Balance Method (HBM)
 
-x(t) ≈ A sin(omega t - phi)
+- first-harmonic approximation
+- nonlinear algebraic residual solving
+- multiple-root detection
+- approximate branch classification
 
-For the cubic nonlinear term, the fundamental harmonic approximation is:
+### Numerical Simulation
 
-x^3 ≈ (3/4) A^3 sin(omega t - phi)
+- RK4 time integration
+- steady-state extraction
+- numerical/HBM comparison
 
-Substituting into the equation of motion gives the harmonic balance amplitude equation:
+### Spectral Analysis
 
-F0^2 = A^2 [ (k + (3/4) alpha A^2 - m omega^2)^2 + (c omega)^2 ]
+- live FFT spectrum
+- harmonic identification
+- third-harmonic indicator
 
-The phase lag is computed as:
+### Visualization
 
-phi = atan2(c omega, k + (3/4) alpha A^2 - m omega^2)
+- animated nonlinear spring-mass system
+- harmonic forcing vector
+- phase portrait
+- amplitude-frequency response
+- resonance branch visualization
 
----
+### Engineering Dashboard
 
-## Model Inputs
-
-The interactive simulator allows users to change:
-
-- Mass
-- Damping
-- Linear stiffness
-- Cubic nonlinear stiffness
-- Force amplitude
-- Excitation frequency
-- Frequency sweep range
-- Numerical comparison mode
-
----
-
-## Preset Scenarios
-
-The app includes several preset examples:
-
-- Linear reference
-- Hardening Duffing oscillator
-- Softening Duffing oscillator
-- Strong nonlinear response
-
-These presets help demonstrate how the harmonic balance solution changes when nonlinear stiffness is introduced.
+- damping ratio
+- frequency ratio
+- RMS approximation error
+- dominant spectral peak
+- automated engineering interpretation
 
 ---
 
-## Analysis and Visualization
+# Screenshots
 
-The simulator generates several plots and metrics.
+## Amplitude-Frequency Response
 
-### Harmonic Balance Analysis
+Features:
+- hardening and softening nonlinearities
+- jump regions
+- multiple HBM roots
+- resonance bending
 
-- Amplitude-frequency response
-- Multiple algebraic amplitude branches
-- Phase-frequency response
-- Harmonic balance residual at the selected excitation frequency
-- Number of amplitude roots at the selected frequency
+## FFT Spectrum
 
-### Numerical Comparison
+Features:
+- dominant forcing frequency
+- harmonic growth
+- nonlinear spectral content
 
-The simulator also compares the harmonic balance solution with direct numerical simulation using the same nonlinear equation of motion.
+## Mechanical Visualization
 
-The numerical comparison includes:
-
-- Steady-state time response
-- Numerical response vs. harmonic balance approximation
-- Phase portrait
-- Harmonic balance ellipse approximation
-- Approximation error
-
----
-
-## Numerical Method
-
-The nonlinear equation is converted into the first-order system:
-
-x_dot = v
-
-v_dot = (F0 sin(omega t) - c v - k x - alpha x^3) / m
-
-The direct numerical solution is computed using a fixed-step fourth-order Runge-Kutta method.
+Features:
+- conceptual nonlinear spring-mass animation
+- harmonic forcing vector
 
 ---
 
-## What the Simulator Shows
+# Physics Notes
 
-The simulator helps visualize several important nonlinear vibration concepts:
+This project uses a first-harmonic harmonic balance approximation.
 
-- Linear resonance
-- Hardening stiffness behavior
-- Softening stiffness behavior
-- Frequency-response bending
-- Multiple harmonic balance roots
-- Jump-type nonlinear response behavior
-- Difference between harmonic balance approximation and numerical simulation
-- Limitations of the single-harmonic approximation
+The stability indicators shown in the dashboard are:
+- approximate
+- educational
+- not equivalent to Floquet analysis or numerical continuation methods
 
----
-
-## Important Notes and Limitations
-
-The harmonic balance implementation uses a **single-harmonic approximation**.
-
-This means the response is assumed to be dominated by the fundamental excitation frequency. Higher harmonics are neglected.
-
-The amplitude-frequency branches shown in the app are algebraic harmonic balance roots. They are not automatically classified as stable or unstable.
-
-For strong nonlinear behavior, the response may include:
-
-- Higher harmonics
-- Subharmonics
-- Superharmonics
-- Jump phenomena
-- Multi-periodic response
-- Chaotic response
-
-In such cases, the single-harmonic harmonic balance approximation may differ from the direct numerical simulation.
-
-For more advanced analysis, multi-harmonic harmonic balance, continuation methods, or direct numerical bifurcation analysis may be required.
-
-This project is intended as an educational and visualization tool. It is not certified engineering design software.
+The simulator is intended for:
+- educational visualization
+- nonlinear dynamics exploration
+- engineering demonstrations
+- research prototyping
 
 ---
 
-## Technologies Used
+# Technology Stack
 
-- HTML
-- CSS
+## Frontend
+
+- HTML5
+- CSS3
 - JavaScript
+
+## Visualization
+
 - Plotly.js
-- MathJax
+- HTML5 Canvas
+
+## Numerical Methods
+
+- Harmonic Balance Method
+- Runge–Kutta 4th Order Integration
+- Discrete Fourier Transform
 
 ---
 
-## Suggested Repository Name
+# Running the Project
 
-Recommended repository name:
+## Option 1 — Open Directly
 
-harmonic-balance-simulator
+Simply open:
 
-Alternative names:
+```text
+nonlinear_vibration_digital_lab_QA_checked.html
+```
 
-- nonlinear-vibration-harmonic-balance
-- duffing-harmonic-balance-simulator
-- hbm-nonlinear-vibration
+in a modern browser.
 
----
-
-## Possible Future Improvements
-
-Potential future improvements include:
-
-- Multi-harmonic harmonic balance
-- Stability classification of branches
-- Forward and backward frequency sweeps
-- Continuation-based amplitude-frequency response
-- Bifurcation diagram
-- Poincare section
-- Lyapunov exponent estimation
-- Export of plots as PNG
-- Export of simulation data as CSV
-- Comparison between one-harmonic and multi-harmonic solutions
-- Base excitation model
-- Multi-degree-of-freedom nonlinear vibration systems
+Recommended browsers:
+- Chrome
+- Edge
+- Firefox
 
 ---
 
-## Educational Purpose
+## Option 2 — Local Server
 
-This project is intended for:
+Python:
 
-- Learning nonlinear vibration theory
-- Understanding the harmonic balance method
-- Visualizing Duffing oscillator response
-- Comparing approximate analytical methods with numerical simulation
-- Teaching resonance and nonlinear frequency-response behavior
+```bash
+python -m http.server 8000
+```
 
-It can be useful for students, instructors, researchers, and engineers interested in mechanical vibrations, nonlinear dynamics, and simulation.
+then open:
 
----
-
-## License
-
-This project is released under the MIT License.
-
-MIT License
-
-Copyright (c) 2026 Iurii Storozhenko
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files, to deal in the software
-without restriction, including without limitation the rights to use, copy,
-modify, merge, publish, distribute, sublicense, and/or sell copies of the
-software, and to permit persons to whom the software is furnished to do so,
-subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+```text
+http://localhost:8000
+```
 
 ---
 
-## Author
+# Example Use Cases
 
-**Iurii Storozhenko**
+## Engineering Education
 
-Mechanical engineering, vibration analysis, nonlinear dynamics, dynamic systems, wind turbine diagnostics, and condition monitoring.
+- resonance visualization
+- nonlinear systems courses
+- vibration analysis labs
+- harmonic balance demonstrations
+
+## Research Prototyping
+
+- nonlinear response exploration
+- resonance jump studies
+- harmonic analysis
+
+## Condition Monitoring Concepts
+
+Potential future extension toward:
+- rotating machinery diagnostics
+- fault simulation
+- digital twins
+- electromechanical coupling
+- predictive maintenance systems
+
+---
+
+# Future Improvements
+
+Potential future extensions:
+
+```text
+- Floquet stability analysis
+- continuation methods
+- bifurcation diagrams
+- Poincaré sections
+- chaos detection
+- Lyapunov exponents
+- multi-DOF systems
+- gearbox dynamics
+- bearing fault models
+- rotor imbalance models
+- electromechanical coupling
+- AI-assisted diagnostics
+- WebGL / Three.js visualization
+```
+
+---
+
+# Repository Structure
+
+```text
+project/
+│
+├── nonlinear_vibration_digital_lab_QA_checked.html
+├── README.md
+└── preview.png
+```
+
+---
+
+# Author
+
+Developed by Iurii Storozhenko
+
+Research interests:
+- nonlinear dynamics
+- vibration analysis
+- condition monitoring
+- wind turbine diagnostics
+- electrical machine modeling
+- digital twin systems
+- engineering education technology
+
+---
+
+# License
+
+This project is provided for:
+- educational use
+- research exploration
+- engineering demonstrations
+
+Add your preferred open-source license:
+- MIT
+- Apache 2.0
+- GPL
+- proprietary license
+
+depending on your intended usage.
