@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Nonlinear Vibration Digital Lab</title>
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<style>
+:root{
+  --bg:#050816;
+  --panel:#0b1227;
+  --panel2:#0f1b34;
+  --text:#e5edf9;
+  --muted:#8ea4c7;
+  --cyan:#38bdf8;
+  --green:#22c55e;
+  --red:#ef4444;
+  --orange:#f59e0b;
+  --violet:#a78bfa;
+  --line:#1e2a44;
+  --shadow:0 25px 80px rgba(0,0,0,.45);
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Inter,Arial,sans-serif;
+  background:radial-gradient(circle at 20% 0%,#172554 0,#050816 36%,#020617 100%);
+  color:var(--text);
+}
+header{
+  padding:30px clamp(18px,4vw,48px);
+  border-bottom:1px solid rgba(148,163,184,.18);
+  background:linear-gradient(135deg,rgba(14,165,233,.12),rgba(168,85,247,.09));
+}
+h1{
+  font-size:clamp(30px,5vw,56px);
+  line-height:1;
+  margin:0;
+  letter-spacing:-.05em;
+}
+.subtitle{
+  color:var(--muted);
+  max-width:1120px;
+  line-height:1.55;
+  font-size:16px;
+  margin-top:12px;
+}
+.tag{
+  display:inline-flex;
+  margin-top:15px;
+  border:1px solid rgba(56,189,248,.35);
+  background:rgba(56,189,248,.08);
+  color:#bae6fd;
+  border-radius:999px;
+  padding:7px 12px;
+  font-weight:800;
+  font-size:12px;
+}
+.app{
+  max-width:1600px;
+  margin:auto;
+  padding:22px;
+  display:grid;
+  grid-template-columns:390px 1fr;
+  gap:22px;
+}
+.sidebar{
+  position:sticky;
+  top:16px;
+  align-self:start;
+}
+.panel{
+  background:linear-gradient(180deg,rgba(15,23,42,.88),rgba(15,23,42,.68));
+  border:1px solid rgba(148,163,184,.18);
+  border-radius:24px;
+  padding:18px;
+  box-shadow:var(--shadow);
+  backdrop-filter:blur(14px);
+  margin-bottom:18px;
+}
+.main{display:flex;flex-direction:column;gap:18px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.grid3{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}
+h2{margin:0 0 14px;font-size:18px}
+.hint{
+  font-size:12px;
+  color:var(--muted);
+  line-height:1.45;
+}
+.control{
+  border-top:1px solid rgba(148,163,184,.13);
+  padding-top:12px;
+  margin-top:12px;
+}
+label{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  font-weight:900;
+  font-size:13px;
+  margin-bottom:7px;
+}
+.value{
+  font-variant-numeric:tabular-nums;
+  color:var(--cyan);
+  white-space:nowrap;
+}
+input[type=range]{
+  width:100%;
+  accent-color:var(--cyan);
+}
+button{
+  border:1px solid rgba(56,189,248,.35);
+  background:rgba(56,189,248,.09);
+  color:#e0f2fe;
+  border-radius:999px;
+  padding:10px 13px;
+  font-weight:900;
+  cursor:pointer;
+  margin:4px;
+}
+button:hover{background:rgba(56,189,248,.18)}
+.metric{
+  background:rgba(15,23,42,.7);
+  border:1px solid rgba(148,163,184,.15);
+  border-radius:18px;
+  padding:14px;
+}
+.metric .name{
+  color:var(--muted);
+  font-size:12px;
+  font-weight:800;
+}
+.metric .val{
+  font-size:19px;
+  font-weight:950;
+  margin-top:4px;
+  color:#e0f2fe;
+}
+.plot{height:390px}
+.plotLarge{height:520px}
+.canvasWrap{
+  height:430px;
+  position:relative;
+  overflow:hidden;
+}
+.analysis{
+  font-size:14px;
+  line-height:1.65;
+  color:#cbd5e1;
+  background:rgba(15,23,42,.65);
+  border:1px solid rgba(148,163,184,.16);
+  padding:16px;
+  border-radius:18px;
+}
+.badge{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  margin:4px 5px 0 0;
+  border-radius:999px;
+  padding:6px 9px;
+  font-size:12px;
+  font-weight:900;
+}
+.good{background:rgba(34,197,94,.12);color:#bbf7d0;border:1px solid rgba(34,197,94,.28)}
+.warn{background:rgba(245,158,11,.13);color:#fde68a;border:1px solid rgba(245,158,11,.28)}
+.bad{background:rgba(239,68,68,.13);color:#fecaca;border:1px solid rgba(239,68,68,.28)}
+canvas{
+  width:100%;
+  height:100%;
+  display:block;
+  border-radius:18px;
+  border:1px solid rgba(148,163,184,.22);
+  background:radial-gradient(circle at 50% 50%,rgba(59,130,246,.16),rgba(2,6,23,.92));
+}
+.glow{
+  position:absolute;
+  inset:auto 20px 18px 20px;
+  color:#93c5fd;
+  font-size:12px;
+}
+.footerNote{
+  font-size:12px;
+  color:var(--muted);
+  line-height:1.5;
+}
+@media(max-width:1100px){
+  .app,.grid{grid-template-columns:1fr}
+  .sidebar{position:static}
+  .grid3{grid-template-columns:repeat(2,1fr)}
+  .plotLarge,.canvasWrap{height:420px}
+}
+@media(max-width:650px){
+  .app{padding:12px}
+  .grid3{grid-template-columns:1fr}
+  .plot,.plotLarge,.canvasWrap{height:350px}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>Nonlinear Vibration Digital Lab</h1>
+  <div class="subtitle">
+    Interactive engineering dashboard for exploring the forced Duffing oscillator, harmonic-balance approximation,
+    numerical response, nonlinear resonance bending, jump behavior, spectral harmonics, and phase-space motion.
+  </div>
+  <div class="tag">Harmonic Balance • FFT • Resonance Jump • Automated Interpretation</div>
+</header>
+
+<div class="app">
+  <aside class="sidebar">
+    <section class="panel">
+      <h2>Model Controls</h2>
+      <div class="hint">
+        Model equation:<br>
+        <b>m x¨ + c x˙ + kx + αx³ = F₀ sin(ωt)</b><br><br>
+        Units are SI-style: m [kg], c [N·s/m], k [N/m], α [N/m³], F₀ [N], ω [rad/s], x [m].
+      </div>
+
+      <div class="control">
+        <label>Mass m [kg] <span class="value" id="mVal"></span></label>
+        <input id="m" type="range" min="0.2" max="5" step="0.1" value="1">
+      </div>
+
+      <div class="control">
+        <label>Damping c [N·s/m] <span class="value" id="cVal"></span></label>
+        <input id="c" type="range" min="0.02" max="1.5" step="0.01" value="0.12">
+      </div>
+
+      <div class="control">
+        <label>Linear stiffness k [N/m] <span class="value" id="kVal"></span></label>
+        <input id="k" type="range" min="5" max="80" step="1" value="20">
+      </div>
+
+      <div class="control">
+        <label>Cubic stiffness α [N/m³] <span class="value" id="aVal"></span></label>
+        <input id="alpha" type="range" min="-400" max="700" step="10" value="360">
+      </div>
+
+      <div class="control">
+        <label>Force amplitude F₀ [N] <span class="value" id="fVal"></span></label>
+        <input id="F0" type="range" min="0.5" max="14" step="0.1" value="5.4">
+      </div>
+
+      <div class="control">
+        <label>Excitation frequency ω [rad/s] <span class="value" id="wVal"></span></label>
+        <input id="omega" type="range" min="1" max="12" step="0.02" value="5.1">
+      </div>
+
+      <div class="control">
+        <button id="animateBtn" onclick="toggleSweep()">Start animated sweep</button>
+        <button onclick="preset('hard')">Hardening</button>
+        <button onclick="preset('soft')">Softening</button>
+        <button onclick="preset('linear')">Linear</button>
+      </div>
+
+      <div class="footerNote">
+        Stability labels are approximate branch indicators from the first-harmonic algebraic response.
+        They are not a replacement for Floquet or continuation-based stability analysis.
+      </div>
+    </section>
+  </aside>
+
+  <main class="main">
+    <section class="grid3" id="metrics"></section>
+
+    <section class="grid">
+      <div class="panel">
+        <h2>Animated Mechanical Visualization</h2>
+        <div class="canvasWrap">
+          <canvas id="machineCanvas"></canvas>
+          <div class="glow">Conceptual harmonic forcing vector + nonlinear spring-mass response, exaggerated for visualization.</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Automated Engineering Interpretation</h2>
+        <div id="analysis" class="analysis"></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Amplitude-Frequency Response</h2>
+      <div id="ampPlot" class="plotLarge"></div>
+    </section>
+
+    <section class="grid">
+      <div class="panel">
+        <h2>Live FFT Spectrum</h2>
+        <div id="fftPlot" class="plot"></div>
+      </div>
+
+      <div class="panel">
+        <h2>Time Response</h2>
+        <div id="timePlot" class="plot"></div>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="panel">
+        <h2>Phase Portrait</h2>
+        <div id="phasePlot" class="plot"></div>
+      </div>
+
+      <div class="panel">
+        <h2>HBM Residual Check</h2>
+        <div id="residualPlot" class="plot"></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+const cfg = {responsive:true, displaylogo:false};
+let sweep=false, sweepDir=1, tAnim=0;
+let lastQ=null, lastS=null, lastSim=null, lastPlotUpdate=0;
+
+function el(id){return document.getElementById(id)}
+function v(id){return parseFloat(el(id).value)}
+function set(id,x){el(id).value=x}
+function p(){return {m:v('m'), c:v('c'), k:v('k'), a:v('alpha'), F:v('F0'), w:v('omega')}}
+function fmt(x,n=2){return isFinite(x)?Number(x).toFixed(n):'—'}
+
+function residual(A,w,q){
+  const ke = q.k + 0.75*q.a*A*A - q.m*w*w;
+  return A*A*(ke*ke + (q.c*w)*(q.c*w)) - q.F*q.F;
+}
+
+function phaseLag(A,w,q){
+  const ke = q.k + 0.75*q.a*A*A - q.m*w*w;
+  return Math.atan2(q.c*w, ke);
+}
+
+function rootsAt(w,q){
+  const linearAmp = q.F / Math.max(1e-9, Math.hypot(q.k - q.m*w*w, q.c*w));
+  const alphaScale = Math.sqrt(Math.abs(q.F/(q.a || 1))) * 5;
+  const Amax = Math.min(80, Math.max(3, linearAmp*5, alphaScale));
+  const N = 1200;
+  let roots = [];
+  let prevA = 0;
+  let prevR = residual(0,w,q);
+
+  for(let i=1;i<=N;i++){
+    const A = Amax*i/N;
+    const R = residual(A,w,q);
+
+    if(prevR*R < 0){
+      let lo = prevA, hi = A, flo = prevR;
+      for(let j=0;j<60;j++){
+        const mid = 0.5*(lo+hi);
+        const fm = residual(mid,w,q);
+        if(flo*fm <= 0){hi = mid}
+        else{lo = mid; flo = fm}
+      }
+      roots.push(0.5*(lo+hi));
+    }
+
+    prevA = A;
+    prevR = R;
+  }
+
+  return roots
+    .filter(x => x > 1e-7 && isFinite(x))
+    .filter((x,i,arr) => i===0 || Math.abs(x-arr[i-1])>1e-3);
+}
+
+function approximateStable(rootIndex,totalRoots){
+  if(totalRoots < 3) return true;
+  return rootIndex !== 1;
+}
+
+function selectedSolution(q){
+  const r = rootsAt(q.w,q);
+  if(!r.length) return null;
+  const idx = r.length > 2 ? 2 : r.length-1;
+  return {
+    A:r[idx],
+    phi:phaseLag(r[idx],q.w,q),
+    roots:r,
+    rootIndex:idx,
+    stable:approximateStable(idx,r.length)
+  };
+}
+
+function responseCurve(q){
+  const wn = Math.sqrt(q.k/q.m);
+  const w0 = Math.max(0.5, 0.45*wn);
+  const w1 = Math.min(13, 1.9*wn);
+  let xs=[], ys=[], st=[];
+
+  for(let i=0;i<260;i++){
+    const w = w0 + (w1-w0)*i/259;
+    const r = rootsAt(w,q);
+    r.forEach((A,j)=>{
+      xs.push(w);
+      ys.push(A);
+      st.push(approximateStable(j,r.length));
+    });
+  }
+
+  return {xs,ys,st,w0,w1};
+}
+
+function acceleration(x,xdot,t,q){
+  return (q.F*Math.sin(q.w*t) - q.c*xdot - q.k*x - q.a*x*x*x)/q.m;
+}
+
+function simulate(q,s){
+  const T = 2*Math.PI/q.w;
+  const samplesPerPeriod = 96;
+  const totalPeriods = 42;
+  const keepPeriods = 9;
+  const dt = T/samplesPerPeriod;
+  const steps = samplesPerPeriod*totalPeriods;
+  const keep = samplesPerPeriod*keepPeriods;
+
+  let x=0, xdot=0, t=0;
+  let tt=[], xx=[], vv=[], hh=[], hhv=[], err=[];
+  let diverged=false;
+
+  for(let i=0;i<steps;i++){
+    const k1v = acceleration(x,xdot,t,q), k1x = xdot;
+    const k2v = acceleration(x+0.5*dt*k1x, xdot+0.5*dt*k1v, t+0.5*dt, q), k2x = xdot+0.5*dt*k1v;
+    const k3v = acceleration(x+0.5*dt*k2x, xdot+0.5*dt*k2v, t+0.5*dt, q), k3x = xdot+0.5*dt*k2v;
+    const k4v = acceleration(x+dt*k3x, xdot+dt*k3v, t+dt, q), k4x = xdot+dt*k3v;
+
+    x += dt/6*(k1x + 2*k2x + 2*k3x + k4x);
+    xdot += dt/6*(k1v + 2*k2v + 2*k3v + k4v);
+    t += dt;
+
+    if(Math.abs(x)>1e6 || !isFinite(x) || !isFinite(xdot)){
+      diverged=true;
+      break;
+    }
+
+    if(i > steps-keep){
+      const h = s ? s.A*Math.sin(q.w*t - s.phi) : 0;
+      const hv = s ? s.A*q.w*Math.cos(q.w*t - s.phi) : 0;
+      tt.push(t);
+      xx.push(x);
+      vv.push(xdot);
+      hh.push(h);
+      hhv.push(hv);
+      err.push(x-h);
+    }
+  }
+
+  const t0 = tt.length ? tt[0] : 0;
+  return {t:tt.map(z=>z-t0), x:xx, v:vv, h:hh, hv:hhv, err, dt, diverged};
+}
+
+function mean(arr){
+  if(!arr.length) return 0;
+  return arr.reduce((a,b)=>a+b,0)/arr.length;
+}
+
+function rms(arr){
+  if(!arr.length) return NaN;
+  return Math.sqrt(mean(arr.map(x=>x*x)));
+}
+
+function maxAbs(arr){
+  if(!arr.length) return NaN;
+  return arr.reduce((m,x)=>Math.max(m,Math.abs(x)),0);
+}
+
+function fft(sim){
+  const x = sim.x || [];
+  const N = x.length;
+  if(N < 8 || !sim.dt) return {f:[], amp:[]};
+
+  const avg = mean(x);
+  let f=[], amp=[];
+  const maxK = Math.min(Math.floor(N/2), 140);
+
+  for(let k=1;k<maxK;k++){
+    let re=0, im=0;
+    for(let n=0;n<N;n++){
+      const ang = 2*Math.PI*k*n/N;
+      re += (x[n]-avg)*Math.cos(ang);
+      im -= (x[n]-avg)*Math.sin(ang);
+    }
+    f.push(2*Math.PI*k/(N*sim.dt));
+    amp.push(2*Math.hypot(re,im)/N);
+  }
+  return {f,amp};
+}
+
+function darkLayout(title,x,y){
+  return {
+    title:{text:title,font:{color:'#e5edf9'},x:.02},
+    paper_bgcolor:'rgba(0,0,0,0)',
+    plot_bgcolor:'rgba(2,6,23,.35)',
+    font:{color:'#cbd5e1'},
+    margin:{l:68,r:24,t:48,b:58},
+    xaxis:{title:x,gridcolor:'#1e293b',zerolinecolor:'#334155',linecolor:'#475569',mirror:true,ticks:'outside'},
+    yaxis:{title:y,gridcolor:'#1e293b',zerolinecolor:'#334155',linecolor:'#475569',mirror:true,ticks:'outside'},
+    legend:{orientation:'h',y:-.24}
+  };
+}
+
+function update(){
+  const q = p();
+  const s = selectedSolution(q);
+  const c = responseCurve(q);
+  const sim = s ? simulate(q,s) : {t:[],x:[],v:[],h:[],hv:[],err:[],dt:0,diverged:false};
+  const sp = fft(sim);
+
+  lastQ=q; lastS=s; lastSim=sim;
+
+  el('mVal').textContent = fmt(q.m,2);
+  el('cVal').textContent = fmt(q.c,2);
+  el('kVal').textContent = fmt(q.k,0);
+  el('aVal').textContent = fmt(q.a,0);
+  el('fVal').textContent = fmt(q.F,2);
+  el('wVal').textContent = fmt(q.w,2);
+
+  const wn = Math.sqrt(q.k/q.m);
+  const zeta = q.c/(2*Math.sqrt(q.k*q.m));
+  const roots = s ? s.roots.length : 0;
+  const nonlin = q.a>0 ? 'Hardening' : q.a<0 ? 'Softening' : 'Linear';
+  const maxA = s ? s.A : NaN;
+  const errRms = rms(sim.err);
+  const domFreq = sp.amp.length ? sp.f[sp.amp.indexOf(Math.max(...sp.amp))] : NaN;
+
+  el('metrics').innerHTML = `
+    <div class="metric"><div class="name">Natural frequency</div><div class="val">${fmt(wn,2)} rad/s</div></div>
+    <div class="metric"><div class="name">Damping ratio</div><div class="val">${fmt(zeta,4)}</div></div>
+    <div class="metric"><div class="name">HBM amplitude</div><div class="val">${fmt(maxA,3)} m</div></div>
+    <div class="metric"><div class="name">Root count</div><div class="val">${roots}</div></div>
+    <div class="metric"><div class="name">Nonlinear type</div><div class="val">${nonlin}</div></div>
+    <div class="metric"><div class="name">Frequency ratio</div><div class="val">${fmt(q.w/wn,3)}</div></div>
+    <div class="metric"><div class="name">Dominant spectral peak</div><div class="val">${fmt(domFreq,2)} rad/s</div></div>
+    <div class="metric"><div class="name">HBM RMS error</div><div class="val">${fmt(errRms,4)} m</div></div>
+  `;
+
+  let stableX=[],stableY=[],unstX=[],unstY=[];
+  for(let i=0;i<c.xs.length;i++){
+    if(c.st[i]){stableX.push(c.xs[i]);stableY.push(c.ys[i])}
+    else{unstX.push(c.xs[i]);unstY.push(c.ys[i])}
+  }
+
+  Plotly.react('ampPlot',[
+    {x:stableX,y:stableY,mode:'markers',name:'approx. stable branch',marker:{color:'#22c55e',size:5}},
+    {x:unstX,y:unstY,mode:'markers',name:'approx. unstable branch',marker:{color:'#ef4444',size:7,symbol:'x'}},
+    {x:[q.w,q.w],y:[0,Math.max(1,...c.ys)],mode:'lines',name:'current ω',line:{color:'#f8fafc',dash:'dash'}}
+  ],darkLayout('First-harmonic HBM amplitude-frequency response','Excitation frequency ω [rad/s]','Amplitude A [m]'),cfg);
+
+  Plotly.react('timePlot',[
+    {x:sim.t,y:sim.x,mode:'lines',name:'numerical RK4',line:{color:'#38bdf8',width:2}},
+    {x:sim.t,y:sim.h,mode:'lines',name:'HBM first harmonic',line:{color:'#f59e0b',dash:'dash',width:2}}
+  ],darkLayout('Steady-state response','Time [s]','Displacement x(t) [m]'),cfg);
+
+  Plotly.react('fftPlot',[
+    {x:sp.f,y:sp.amp,mode:'lines+markers',name:'FFT amplitude',line:{color:'#a78bfa',width:2},marker:{size:3}},
+    {x:[q.w,q.w],y:[0,Math.max(1e-6,...sp.amp)],mode:'lines',name:'forcing ω',line:{color:'#22c55e',dash:'dash'}},
+    {x:[3*q.w,3*q.w],y:[0,Math.max(1e-6,...sp.amp)],mode:'lines',name:'3ω marker',line:{color:'#ef4444',dash:'dot'}}
+  ],darkLayout('Steady-state displacement spectrum','Angular frequency [rad/s]','Displacement amplitude [m]'),cfg);
+
+  Plotly.react('phasePlot',[
+    {x:sim.x,y:sim.v,mode:'lines',name:'numerical orbit',line:{color:'#38bdf8',width:2}},
+    {x:sim.h,y:sim.hv,mode:'lines',name:'HBM ellipse',line:{color:'#f59e0b',dash:'dash',width:2}}
+  ],darkLayout('Phase portrait','Displacement x [m]','Velocity x˙ [m/s]'),cfg);
+
+  let AA=[],RR=[];
+  const Amax = Math.max(1, s?s.A*1.8:2, ...c.ys);
+  for(let i=0;i<500;i++){
+    const A = Amax*i/499;
+    AA.push(A);
+    RR.push(residual(A,q.w,q));
+  }
+
+  Plotly.react('residualPlot',[
+    {x:AA,y:RR,mode:'lines',name:'R(A)',line:{color:'#60a5fa',width:2}},
+    {x:[0,Amax],y:[0,0],mode:'lines',name:'zero residual',line:{color:'#f8fafc',dash:'dash'}}
+  ],darkLayout('HBM algebraic residual at selected frequency','Amplitude A [m]','Residual R(A) [N²]'),cfg);
+
+  const df = sp.f.length>1 ? sp.f[1]-sp.f[0] : NaN;
+  const idx3 = isFinite(df) ? Math.max(0,Math.min(sp.amp.length-1,Math.round(3*q.w/df)-1)) : 0;
+  const maxSpec = sp.amp.length ? Math.max(...sp.amp) : 0;
+  const thirdRatio = maxSpec>0 ? sp.amp[idx3]/maxSpec : 0;
+  const nearRes = q.w/wn > 0.85 && q.w/wn < 1.25;
+  const stabilityText = s ? (s.stable ? 'approx. stable selected branch' : 'approx. unstable selected branch') : 'no selected branch';
+
+  el('analysis').innerHTML = `
+    <span class="badge ${q.a>0?'good':q.a<0?'warn':'good'}">${nonlin}</span>
+    <span class="badge ${nearRes?'warn':'good'}">${nearRes?'near linear resonance':'away from linear resonance'}</span>
+    <span class="badge ${roots>1?'bad':'good'}">${roots>1?'multiple HBM roots':'single response branch'}</span>
+    <span class="badge ${thirdRatio>.08?'warn':'good'}">${thirdRatio>.08?'higher harmonics visible':'mostly first harmonic'}</span>
+
+    <p><b>Automated summary:</b> The system is operating at ω/ωₙ = ${fmt(q.w/wn,2)}.
+    ${q.a>0?'Positive cubic stiffness produces hardening behavior, so the resonance curve bends toward higher frequencies.':q.a<0?'Negative cubic stiffness produces softening behavior, so the resonance curve bends toward lower frequencies. For large amplitudes this idealized model can become physically unrealistic.':'With α = 0 the model reduces to a linear forced oscillator.'}
+    ${roots>1?'The selected frequency has multiple first-harmonic amplitude roots, so jump or hysteresis behavior is possible during a frequency sweep.':'The selected condition has one dominant first-harmonic response branch.'}
+    The selected branch indicator is: <b>${stabilityText}</b>.</p>
+
+    <p><b>Numerical check:</b> RK4 integration is compared with the first-harmonic HBM approximation.
+    RMS displacement error is ${fmt(errRms,4)} m. The relative third-harmonic indicator is ${fmt(thirdRatio,3)}.
+    ${sim.diverged?'The numerical solution became very large; reduce force or adjust stiffness parameters.':''}</p>
+  `;
+
+  drawMachine(q,s,sim);
+}
+
+function drawMachine(q,s,sim){
+  const cv = el('machineCanvas');
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  cv.width = cv.clientWidth*dpr;
+  cv.height = cv.clientHeight*dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+
+  const W = cv.clientWidth;
+  const H = cv.clientHeight;
+  ctx.clearRect(0,0,W,H);
+
+  const visualAmp = s ? Math.min(82,Math.abs(s.A)*38) : 10;
+  const x0 = W*0.54 + visualAmp*Math.sin(tAnim*q.w - (s?s.phi:0));
+  const y = H*0.52;
+
+  ctx.strokeStyle='rgba(56,189,248,.20)';
+  ctx.lineWidth=2;
+  for(let i=0;i<18;i++){
+    ctx.beginPath();
+    ctx.moveTo(30+i*22,H*.18);
+    ctx.lineTo(12+i*22,H*.82);
+    ctx.stroke();
+  }
+
+  ctx.strokeStyle='#38bdf8';
+  ctx.lineWidth=4;
+  ctx.beginPath();
+  ctx.moveTo(70,y);
+  for(let i=0;i<16;i++){
+    ctx.lineTo(70+i*(x0-120)/16,y+(i%2?26:-26));
+  }
+  ctx.lineTo(x0-40,y);
+  ctx.stroke();
+
+  const grad=ctx.createRadialGradient(x0-8,y-8,6,x0,y,55);
+  grad.addColorStop(0,'#e0f2fe');
+  grad.addColorStop(1,'#2563eb');
+  ctx.fillStyle=grad;
+  ctx.beginPath();
+  roundRectPath(ctx,x0-42,y-42,84,84,18);
+  ctx.fill();
+  ctx.strokeStyle='rgba(226,232,240,.8)';
+  ctx.stroke();
+
+  const ang = tAnim*q.w;
+  const rx = x0 + 110;
+  const ry = y;
+
+  ctx.strokeStyle='rgba(148,163,184,.35)';
+  ctx.lineWidth=10;
+  ctx.beginPath();
+  ctx.arc(rx,ry,58,0,Math.PI*2);
+  ctx.stroke();
+
+  ctx.strokeStyle='#f59e0b';
+  ctx.lineWidth=4;
+  ctx.beginPath();
+  ctx.moveTo(rx,ry);
+  ctx.lineTo(rx+55*Math.cos(ang),ry+55*Math.sin(ang));
+  ctx.stroke();
+
+  ctx.fillStyle='#f59e0b';
+  ctx.beginPath();
+  ctx.arc(rx+55*Math.cos(ang),ry+55*Math.sin(ang),8,0,Math.PI*2);
+  ctx.fill();
+
+  ctx.fillStyle='#cbd5e1';
+  ctx.font='bold 13px Arial';
+  ctx.fillText('nonlinear spring-mass response',34,34);
+  ctx.fillText('harmonic forcing vector',rx-64,ry+86);
+}
+
+function roundRectPath(ctx,x,y,w,h,r){
+  if(ctx.roundRect){
+    ctx.roundRect(x,y,w,h,r);
+    return;
+  }
+  ctx.moveTo(x+r,y);
+  ctx.lineTo(x+w-r,y);
+  ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r);
+  ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h);
+  ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r);
+  ctx.quadraticCurveTo(x,y,x+r,y);
+}
+
+function animate(timestamp){
+  tAnim += 0.026;
+
+  if(sweep && (!lastPlotUpdate || timestamp-lastPlotUpdate>110)){
+    let w = v('omega') + 0.035*sweepDir;
+    if(w>8.5 || w<2.5){
+      sweepDir *= -1;
+      w = v('omega') + 0.035*sweepDir;
+    }
+    set('omega',w);
+    update();
+    lastPlotUpdate=timestamp;
+  }
+
+  if(lastQ) drawMachine(lastQ,lastS,lastSim);
+  requestAnimationFrame(animate);
+}
+
+function toggleSweep(){
+  sweep = !sweep;
+  el('animateBtn').textContent = sweep ? 'Stop animated sweep' : 'Start animated sweep';
+}
+
+function preset(name){
+  if(name==='hard'){
+    set('alpha',360); set('c',0.12); set('F0',5.4); set('omega',5.1); set('k',20); set('m',1);
+  }
+  if(name==='soft'){
+    set('alpha',-120); set('c',0.18); set('F0',3.3); set('omega',4.2); set('k',25); set('m',1);
+  }
+  if(name==='linear'){
+    set('alpha',0); set('c',0.22); set('F0',2.5); set('omega',4.4); set('k',20); set('m',1);
+  }
+  update();
+}
+
+document.querySelectorAll('input').forEach(x=>x.addEventListener('input',update));
+update();
+requestAnimationFrame(animate);
+</script>
+</body>
+</html>
