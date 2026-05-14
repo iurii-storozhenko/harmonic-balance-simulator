@@ -2,8 +2,6 @@
 
 Interactive engineering dashboard for exploring nonlinear vibration dynamics, harmonic balance methods, resonance behavior, spectral harmonics, and phase-space motion using a forced Duffing oscillator model.
 
-![Platform Preview](preview.png)
-
 ---
 
 # Overview
